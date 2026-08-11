@@ -6,12 +6,12 @@ try {
     $node = Join-Path $nodeDir 'node.exe'
     $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
 
-    $process = Start-Process $node -ArgumentList $npm, 'ci', '--no-audit' -NoNewWindow -Wait -PassThru
-    if ($process.ExitCode) { exit $process.ExitCode }
-    $process = Start-Process $node -ArgumentList $npm, 'run', 'build' -NoNewWindow -Wait -PassThru
-    if ($process.ExitCode) { exit $process.ExitCode }
-    $process = Start-Process $node -ArgumentList $npm, 'run', 'package' -NoNewWindow -Wait -PassThru
-    if ($process.ExitCode) { exit $process.ExitCode }
+    & $node $npm ci --no-audit
+    if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    & $node $npm run build
+    if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    & $node $npm run package
+    if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item pkg\inshellisense-* dist\
