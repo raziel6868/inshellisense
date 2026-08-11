@@ -1,26 +1,28 @@
 $ErrorActionPreference = 'Stop'
 
-function Invoke-Npm([string[]]$Arguments) {
+function Invoke-Build {
     $nodeDir = Split-Path (Get-Command npm.cmd).Source
     $node = Join-Path $nodeDir 'node.exe'
     $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
+    $script = [IO.Path]::ChangeExtension([IO.Path]::GetTempFileName(), '.cmd')
     $stdout = [IO.Path]::GetTempFileName()
     $stderr = [IO.Path]::GetTempFileName()
     try {
-        $process = Start-Process $node -ArgumentList (@("`"$npm`"") + $Arguments) -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
+        [IO.File]::WriteAllLines($script, @('@echo off', "`"$node`" `"$npm`" ci --no-audit || exit /b", "`"$node`" `"$npm`" run build || exit /b", "`"$node`" `"$npm`" run package"))
+        $process = Start-Process $script -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
         [Console]::Out.Write([IO.File]::ReadAllText($stdout))
-        [Console]::Out.Write([IO.File]::ReadAllText($stderr))
-        if ($process.ExitCode) { exit $process.ExitCode }
+        if ($process.ExitCode) {
+            [Console]::Error.Write([IO.File]::ReadAllText($stderr))
+            exit $process.ExitCode
+        }
     } finally {
-        Remove-Item $stdout, $stderr -Force
+        Remove-Item $script, $stdout, $stderr -Force
     }
 }
 
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    Invoke-Npm @('ci', '--no-audit')
-    Invoke-Npm @('run', 'build')
-    Invoke-Npm @('run', 'package')
+    Invoke-Build
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item pkg\inshellisense-* dist\
