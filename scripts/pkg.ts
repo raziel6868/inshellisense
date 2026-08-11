@@ -94,7 +94,7 @@ const downloadNodeBinary = async (): Promise<string> => {
   await verifySha256(archivePath);
 
   if (process.platform === "win32") {
-    execSync(`unzip -o "${archivePath}" -d "${PKG_DIR}"`, { stdio: "inherit" });
+    execSync(`tar -xf "${archivePath}" -C "${PKG_DIR}"`, { stdio: "inherit" });
   } else {
     execSync(`tar -xzf "${archivePath}" -C "${PKG_DIR}"`, { stdio: "inherit" });
   }
