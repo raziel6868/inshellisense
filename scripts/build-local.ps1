@@ -6,12 +6,14 @@ try {
     $node = Join-Path $nodeDir 'node.exe'
     $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
 
+    $ErrorActionPreference = 'Continue'
     & $node $npm ci --no-audit
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
     & $node $npm run build
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
     & $node $npm run package
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    $ErrorActionPreference = 'Stop'
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item pkg\inshellisense-* dist\
