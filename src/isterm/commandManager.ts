@@ -241,7 +241,21 @@ export class CommandManager {
 
       const globalCursorPosition = this.#terminal.buffer.active.baseY + this.#terminal.buffer.active.cursorY;
 
-      if (this.#activeCommand.promptStartMarker.isDisposed || this.#activeCommand.promptEndMarker.isDisposed) {
+      // Zsh prompt renderers can emit prompt markers before redrawing a multiline prompt.
+      // Re-anchor once, after that redraw, so command parsing starts at the real input cursor.
+      if (
+        this.#shell === Shell.Zsh &&
+        this.#activeCommand.commandText === "" &&
+        (globalCursorPosition > this.#activeCommand.promptEndMarker.line ||
+          (this.#activeCommand.promptEndX === 0 && this.#terminal.buffer.active.cursorX > 0))
+      ) {
+        this.#activeCommand.promptEndMarker = this.#terminal.registerMarker(0);
+        this.#activeCommand.promptEndX = this.#terminal.buffer.active.cursorX;
+        this.#activeCommand.promptText = this.#terminal.buffer.active.getLine(globalCursorPosition)?.translateToString(true);
+        this.#activeCommand.suggestionsText = "";
+      }
+
+      if (this.#activeCommand.promptStartMarker.isDisposed || this.#activeCommand.promptEndMarker?.isDisposed) {
         log.debug({ msg: "markers disposed, re-registering" });
         this.#activeCommand.promptStartMarker = this.#terminal.registerMarker(0);
         this.#activeCommand.promptEndMarker = this.#terminal.registerMarker(0);

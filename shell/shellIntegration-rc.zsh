@@ -51,22 +51,9 @@ __is_precmd() {
 	__is_update_cwd
 	if [[ $ISTERM_TESTING == "1" ]]; then
 		PS1="%{$(__is_prompt_start)%}> %{$(__is_prompt_end)%}"
+	else
+		PS1=$'%{\e]6973;PS\a%}'$PS1$'%{\e]6973;PE\a%}'
 	fi
 }
-
-if (( ${+widgets[zle-line-init]} )); then
-	zle -A zle-line-init __is_orig_zle_line_init
-	__is_zle_line_init() {
-		__is_prompt_start
-		zle __is_orig_zle_line_init
-		__is_prompt_end
-	}
-else
-	__is_zle_line_init() {
-		__is_prompt_start
-		__is_prompt_end
-	}
-fi
-zle -N zle-line-init __is_zle_line_init
 
 add-zsh-hook precmd __is_precmd
