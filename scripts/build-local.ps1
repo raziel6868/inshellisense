@@ -1,10 +1,13 @@
 $ErrorActionPreference = 'Stop'
 
 function Invoke-Npm([string[]]$Arguments) {
+    $nodeDir = Split-Path (Get-Command npm.cmd).Source
+    $node = Join-Path $nodeDir 'node.exe'
+    $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
     $stdout = [IO.Path]::GetTempFileName()
     $stderr = [IO.Path]::GetTempFileName()
     try {
-        $process = Start-Process npm.cmd -ArgumentList $Arguments -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
+        $process = Start-Process $node -ArgumentList (@("`"$npm`"") + $Arguments) -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
         [Console]::Out.Write([IO.File]::ReadAllText($stdout))
         [Console]::Error.Write([IO.File]::ReadAllText($stderr))
         if ($process.ExitCode) { exit $process.ExitCode }
