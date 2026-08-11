@@ -2,11 +2,15 @@ $ErrorActionPreference = 'Stop'
 
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    $process = Start-Process npm.cmd -ArgumentList 'ci' -NoNewWindow -Wait -PassThru
+    $nodeDir = Split-Path (Get-Command npm.cmd).Source
+    $node = Join-Path $nodeDir 'node.exe'
+    $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
+
+    $process = Start-Process $node -ArgumentList $npm, 'ci', '--no-audit' -NoNewWindow -Wait -PassThru
     if ($process.ExitCode) { exit $process.ExitCode }
-    $process = Start-Process npm.cmd -ArgumentList 'run', 'build' -NoNewWindow -Wait -PassThru
+    $process = Start-Process $node -ArgumentList $npm, 'run', 'build' -NoNewWindow -Wait -PassThru
     if ($process.ExitCode) { exit $process.ExitCode }
-    $process = Start-Process npm.cmd -ArgumentList 'run', 'package' -NoNewWindow -Wait -PassThru
+    $process = Start-Process $node -ArgumentList $npm, 'run', 'package' -NoNewWindow -Wait -PassThru
     if ($process.ExitCode) { exit $process.ExitCode }
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
