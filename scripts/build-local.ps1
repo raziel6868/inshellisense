@@ -1,10 +1,12 @@
+$ErrorActionPreference = 'Stop'
+
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    npm ci
+    cmd.exe /d /c call npm ci
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    npm run build
+    cmd.exe /d /c call npm run build
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    npm run package
+    cmd.exe /d /c call npm run package
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
