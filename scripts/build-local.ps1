@@ -9,7 +9,7 @@ function Invoke-Npm([string[]]$Arguments) {
     try {
         $process = Start-Process $node -ArgumentList (@("`"$npm`"") + $Arguments) -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
         [Console]::Out.Write([IO.File]::ReadAllText($stdout))
-        [Console]::Error.Write([IO.File]::ReadAllText($stderr))
+        [Console]::Out.Write([IO.File]::ReadAllText($stderr))
         if ($process.ExitCode) { exit $process.ExitCode }
     } finally {
         Remove-Item $stdout, $stderr -Force
