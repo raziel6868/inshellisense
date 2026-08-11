@@ -1,5 +1,3 @@
-$ErrorActionPreference = 'Stop'
-
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
     npm ci
