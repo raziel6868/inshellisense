@@ -2,12 +2,12 @@ $ErrorActionPreference = 'Stop'
 
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    cmd.exe /d /c call npm ci
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    cmd.exe /d /c call npm run build
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    cmd.exe /d /c call npm run package
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    $process = Start-Process npm.cmd -ArgumentList 'ci' -NoNewWindow -Wait -PassThru
+    if ($process.ExitCode) { exit $process.ExitCode }
+    $process = Start-Process npm.cmd -ArgumentList 'run', 'build' -NoNewWindow -Wait -PassThru
+    if ($process.ExitCode) { exit $process.ExitCode }
+    $process = Start-Process npm.cmd -ArgumentList 'run', 'package' -NoNewWindow -Wait -PassThru
+    if ($process.ExitCode) { exit $process.ExitCode }
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item pkg\inshellisense-* dist\
