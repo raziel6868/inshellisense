@@ -1,0 +1,61 @@
+name: Build Artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact-name: inshellisense-darwin-arm64
+          - os: macos-15-intel
+            artifact-name: inshellisense-darwin-x64
+          - os: ubuntu-latest
+            artifact-name: inshellisense-linux-x64
+          - os: ubuntu-24.04-arm
+            artifact-name: inshellisense-linux-arm64
+          - os: windows-latest
+            artifact-name: inshellisense-win32-x64
+          - os: windows-11-arm
+            artifact-name: inshellisense-win32-arm64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js 22.21.1
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.21.1
+          package-manager-cache: false
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run package
+
+      - name: Collect artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp pkg/inshellisense-* dist/
+          cp pkg/*.tgz dist/
+          cd dist
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum * > SHA256SUMS
+          else
+            shasum -a 256 * > SHA256SUMS
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

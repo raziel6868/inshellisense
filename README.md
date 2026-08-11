@@ -8,6 +8,40 @@
 
 ### Installation
 
+**Standalone artifacts (no Node.js required at runtime)**
+
+Open **Actions > Build Artifacts > Run workflow**, then download the artifact for your platform. Each artifact contains a standalone binary, an npm tarball, and `SHA256SUMS`.
+
+Supported targets:
+
+- Windows x64 and ARM64
+- Linux x64 and ARM64
+- macOS x64 and ARM64
+
+After extracting the artifact, place the standalone binary on your `PATH`, then run:
+
+```shell
+is init
+```
+
+The GitHub Actions artifacts are intended for testing and are retained for 30 days. Tagged builds should be distributed as GitHub Release assets for permanent downloads.
+
+**Build locally**
+
+The build machine needs Node.js 22.21.1 and npm. The generated standalone binary does not need Node.js or npm on the destination machine.
+
+```powershell
+# Windows
+.\scripts\build-local.ps1
+```
+
+```shell
+# Linux/macOS
+./scripts/build-local.sh
+```
+
+Outputs are written to `dist/`.
+
 **npm (recommended)**
 
 ```shell
