@@ -1,19 +1,23 @@
 $ErrorActionPreference = 'Stop'
 
+function Invoke-Npm([string[]]$Arguments) {
+    $stdout = [IO.Path]::GetTempFileName()
+    $stderr = [IO.Path]::GetTempFileName()
+    try {
+        $process = Start-Process npm.cmd -ArgumentList $Arguments -RedirectStandardOutput $stdout -RedirectStandardError $stderr -Wait -PassThru
+        [Console]::Out.Write([IO.File]::ReadAllText($stdout))
+        [Console]::Error.Write([IO.File]::ReadAllText($stderr))
+        if ($process.ExitCode) { exit $process.ExitCode }
+    } finally {
+        Remove-Item $stdout, $stderr -Force
+    }
+}
+
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    $nodeDir = Split-Path (Get-Command npm.cmd).Source
-    $node = Join-Path $nodeDir 'node.exe'
-    $npm = Join-Path $nodeDir 'node_modules\npm\bin\npm-cli.js'
-
-    $ErrorActionPreference = 'Continue'
-    & $node $npm ci --no-audit
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    & $node $npm run build
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    & $node $npm run package
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
-    $ErrorActionPreference = 'Stop'
+    Invoke-Npm @('ci', '--no-audit')
+    Invoke-Npm @('run', 'build')
+    Invoke-Npm @('run', 'package')
 
     New-Item -ItemType Directory -Force -Path dist | Out-Null
     Copy-Item pkg\inshellisense-* dist\
