@@ -17,14 +17,16 @@ const removeResources = (resourcesPath: string) => {
   fs.rmSync(resources.version, { force: true });
 };
 
-export const render = async () => {
+export const reinitializeResources = async () => {
   if (allResourcesPath !== preferredResourcesPath) fs.rmSync(allResourcesPath, { recursive: true, force: true });
   removeResources(preferredResourcesPath);
-  process.stdout.write(chalk.green("✓") + " removed old inshellisense resources \n");
 
   const preferredResources = getResourcePaths(preferredResourcesPath);
   await createShellConfigs(preferredResources.init);
   await unpackResources(preferredResourcesPath);
+};
 
+export const render = async () => {
+  await reinitializeResources();
   process.stdout.write(chalk.green("✓") + " successfully installed inshellisense \n");
 };

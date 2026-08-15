@@ -8,6 +8,7 @@ import { Command } from "commander";
 import log from "../utils/log.js";
 import { checkUnpackedVersion } from "../utils/node.js";
 import { endTiming, startTiming } from "../utils/performance.js";
+import sea from "node:sea";
 
 export const supportedShells = shells.join(", ");
 
@@ -29,7 +30,12 @@ export const action = (program: Command) => async (options: RootCommandOptions) 
     process.exit(0);
   }
 
-  const isVersionUpToDate = await checkUnpackedVersion();
+  let isVersionUpToDate = await checkUnpackedVersion();
+  if (!isVersionUpToDate && sea.isSea()) {
+    const { reinitializeResources } = await import("../ui/ui-reinit.js");
+    await reinitializeResources();
+    isVersionUpToDate = true;
+  }
   if (!isVersionUpToDate) {
     const { renderMissingResources } = await import("../ui/ui-status.js");
     process.stdout.write(renderMissingResources());
